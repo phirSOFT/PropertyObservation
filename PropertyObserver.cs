@@ -1,34 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 
 #nullable enable
-namespace PropertyObserving
+namespace phirSOFT.PropertyObservation
 {
     public class PropertyObserver<TObject> where TObject : class, INotifyPropertyChanged, IDisposable
     {
         private TObject? _instance;
 
-        private Dictionary<string, (DelegateInvocationProxy Invocator, PropertyInfo Property)> _invocators = new Dictionary<string, (DelegateInvocationProxy, PropertyInfo)>();
-        public TObject? Instance
+        public PropertyObserver(TObject instance)
         {
-            get => _instance;
+            _instance = instance;
+        }
+
+        private Dictionary<string, (DelegateInvocationProxy Invocator, PropertyInfo Property)>? _invocators = new Dictionary<string, (DelegateInvocationProxy, PropertyInfo)>();
+
+        public TObject Instance
+        {
+            get => _instance ?? throw new ObjectDisposedException(GetType().FullName);
             set
             {
                 if(ReferenceEquals(_instance, value))
                     return;
+                if (_instance != null)
+                {
+                    _instance.PropertyChanged -= InstancePropertyChanged;
+                }
 
-                if(value != null)
+                _instance = value;
+
+                if (value != null)
                 {
                     value.PropertyChanged += InstancePropertyChanged;
                 }
-            };
+            }
         }
 
         private void InstancePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            Debug.Assert(_invocators != null);
             if(!_invocators.TryGetValue(e.PropertyName, out var invocatorDefinition))
                 return;
 
@@ -44,16 +58,18 @@ namespace PropertyObserving
                 throw new ArgumentNullException(nameof(changedHandler));
 
             DelegateInvocationProxy proxy;
-            if (_invocators.TryGetValue(propertyInfo.Name, out var invocatorInfo))
+            var invocators = _invocators?? throw new ObjectDisposedException(GetType().FullName);
+
+            if (invocators.TryGetValue(propertyInfo.Name, out var invocatorInfo))
             {
                proxy = invocatorInfo.Invocator;
             }
             else
             {
                 proxy = new DelegateInvocator<TObject, TProperty>();
-                _invocators.Add(propertyInfo.Name, (proxy, propertyInfo));
+                invocators.Add(propertyInfo.Name, (proxy, propertyInfo));
             }
-            proxy.Add(changedHandler)
+            proxy.Add(changedHandler);
         }
 
         public void RemoveObserver<TProperty>(Expression<Func<TObject, TProperty>> property, Action<TObject, TProperty> changedHandler)
@@ -63,13 +79,22 @@ namespace PropertyObserving
 
             if (changedHandler == null)
                 throw new ArgumentNullException(nameof(changedHandler));
+            _invocators?[propertyInfo.Name].Invocator.Subtract(changedHandler);
+        }
 
-            DelegateInvocationProxy proxy;
-            if (_invocators.TryGetValue(propertyInfo.Name, out var invocatorInfo))
+        public void Dispose()
+        {
+            if(_instance != null)
             {
-                proxy = invocatorInfo.Invocator;
+                _instance.PropertyChanged -= InstancePropertyChanged;
+                _instance = null;
             }
-            _invocators[propertyInfo.Name].Invocator.Subtract(changedHandler);
+            if(_invocators != null)
+            {
+                _invocators.Clear();
+                _invocators = null;
+            }
+
         }
     }
 

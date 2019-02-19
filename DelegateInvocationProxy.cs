@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace PropertyObserving
+namespace phirSOFT.PropertyObservation
 {
     abstract class DelegateInvocationProxy
     {
