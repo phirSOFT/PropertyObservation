@@ -9,6 +9,7 @@ install:
   - cinst gitversion.portable
   - nuget restore
   - ps: gitversion /l console /output buildserver
+  - ps: $env:preview = $APPVEYOR_REPO_BRANCH -match "release/:*"
 
 dotnet_csproj:
   patch: true
@@ -36,7 +37,7 @@ build:
 deploy:
 - provider: GitHub
   auth_token:
-    secure: BZITyDe4tvA5gKlOwmULjb2Q+D5LZK1eJeKdSkqXtlDEYU1AA6+UMYQ9Jc/3CXwQ
+    secure: BZITyDe4tvA5gKlOwmULjb2Q+D5LZK1eJeKdSkqXtlDEYU1AA6+UMYQ9J   c/3CXwQ
   on:
     branch: master
 - provider: GitHub
@@ -44,7 +45,7 @@ deploy:
   auth_token:
     secure: BZITyDe4tvA5gKlOwmULjb2Q+D5LZK1eJeKdSkqXtlDEYU1AA6+UMYQ9Jc/3CXwQ
   on:
-    branch: release/*
+    preview: true
 - provider: NuGet
   api_key:
     secure: DMMq9J7b9JR07KcGPL8CjIGzX7ABeneI3RLcvd5dMz0r1k9pOcpSNmcwEd/KTgog
