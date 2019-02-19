@@ -9,8 +9,9 @@ install:
   - cinst gitversion.portable
   - nuget restore
   - ps: gitversion /l console /output buildserver
-  - ps: $env:preview = $APPVEYOR_REPO_BRANCH -match "release/.*"
-
+  - ps: $env:preview = $env:APPVEYOR_REPO_BRANCH -match "release/.*"
+  - ps: echo $env:APPVEYOR_REPO_BRANCH
+  - ps: echo $APPVEYOR_REPO_BRANCH
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
