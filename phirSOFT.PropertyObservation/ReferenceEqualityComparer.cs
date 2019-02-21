@@ -6,7 +6,7 @@ namespace phirSOFT.PropertyObservation
 {
     internal class ReferenceEqualityComparer<TObject> : IEqualityComparer<TObject> where TObject : class
     {
-        private static readonly Lazy<ReferenceEqualityComparer<TObject>> _comparer = new Lazy<ReferenceEqualityComparer<TObject>>();
+        private static readonly Lazy<ReferenceEqualityComparer<TObject>> _comparer = new Lazy<ReferenceEqualityComparer<TObject>>(() => new ReferenceEqualityComparer<TObject>());
         public static IEqualityComparer<TObject> Comparer => _comparer.Value;
 
         private ReferenceEqualityComparer()
