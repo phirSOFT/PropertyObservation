@@ -25,7 +25,6 @@ namespace phirSOFT.PropertyObservation
         public override void Add(Delegate right)
         {
             _delegate += (Action<T1, T2>)right;
-            _delegate -= (Action<T1, T2>)right;
         }
 
         public override void Subtract(Delegate right)
