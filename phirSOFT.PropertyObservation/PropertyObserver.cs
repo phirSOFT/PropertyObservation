@@ -8,42 +8,23 @@ using System.Reflection;
 #nullable enable
 namespace phirSOFT.PropertyObservation
 {
-    public class PropertyObserver<TObject> where TObject : class, INotifyPropertyChanged, IDisposable
+    public partial class PropertyObserver<TObject> : IDisposable where TObject : class, INotifyPropertyChanged
     {
-        private TObject? _instance;
+        private readonly HashSet<TObject> _trackedInstances = new HashSet<TObject>(ReferenceEqualityComparer<TObject>.Comparer);
 
-        public PropertyObserver(TObject instance)
+        public PropertyObserver()
         {
-            _instance = instance;
+            TrackedInstances = new PropertyObserver<TObject>.TrackingCollection(this);
         }
 
         private Dictionary<string, (DelegateInvocationProxy Invocator, PropertyInfo Property)>? _invocators = new Dictionary<string, (DelegateInvocationProxy, PropertyInfo)>();
 
-        public TObject Instance
-        {
-            get => _instance ?? throw new ObjectDisposedException(GetType().FullName);
-            set
-            {
-                if(ReferenceEquals(_instance, value))
-                    return;
-                if (_instance != null)
-                {
-                    _instance.PropertyChanged -= InstancePropertyChanged;
-                }
-
-                _instance = value;
-
-                if (value != null)
-                {
-                    value.PropertyChanged += InstancePropertyChanged;
-                }
-            }
-        }
+        public ICollection<TObject> TrackedInstances { get; }
 
         private void InstancePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             Debug.Assert(_invocators != null);
-            if(!_invocators.TryGetValue(e.PropertyName, out var invocatorDefinition))
+            if (!_invocators.TryGetValue(e.PropertyName, out var invocatorDefinition))
                 return;
 
             invocatorDefinition.Invocator.Invoke(sender, invocatorDefinition.Property.GetValue(sender));
@@ -58,11 +39,11 @@ namespace phirSOFT.PropertyObservation
                 throw new ArgumentNullException(nameof(changedHandler));
 
             DelegateInvocationProxy proxy;
-            var invocators = _invocators?? throw new ObjectDisposedException(GetType().FullName);
+            var invocators = _invocators ?? throw new ObjectDisposedException(GetType().FullName);
 
             if (invocators.TryGetValue(propertyInfo.Name, out var invocatorInfo))
             {
-               proxy = invocatorInfo.Invocator;
+                proxy = invocatorInfo.Invocator;
             }
             else
             {
@@ -72,24 +53,27 @@ namespace phirSOFT.PropertyObservation
             proxy.Add(changedHandler);
         }
 
-        public void RemoveObserver<TProperty>(Expression<Func<TObject, TProperty>> property, Action<TObject, TProperty> changedHandler)
+        public void RemoveObserver<TProperty>(Expression<Func<TObject, TProperty>> property, Action<TObject, TProperty> changeHandler)
         {
             if (!(property.Body is MemberExpression me && me.Member is PropertyInfo propertyInfo))
                 throw new ArgumentException("Invalid property shape", nameof(property));
 
-            if (changedHandler == null)
-                throw new ArgumentNullException(nameof(changedHandler));
-            _invocators?[propertyInfo.Name].Invocator.Subtract(changedHandler);
+            if (changeHandler == null)
+                throw new ArgumentNullException(nameof(changeHandler));
+            _invocators?[propertyInfo.Name].Invocator.Subtract(changeHandler);
         }
+
+        public void RemoveObserver<TProperty>(string propertyName, Action<TObject, TProperty> changeHandler)
+        {
+            _invocators?[propertyName].Invocator.Subtract(changeHandler);
+        }
+
+
 
         public void Dispose()
         {
-            if(_instance != null)
-            {
-                _instance.PropertyChanged -= InstancePropertyChanged;
-                _instance = null;
-            }
-            if(_invocators != null)
+            _trackedInstances?.Clear();
+            if (_invocators != null)
             {
                 _invocators.Clear();
                 _invocators = null;
@@ -97,5 +81,7 @@ namespace phirSOFT.PropertyObservation
 
         }
     }
+
+
 
 }
