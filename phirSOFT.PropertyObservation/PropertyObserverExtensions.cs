@@ -10,6 +10,14 @@ namespace phirSOFT.PropertyObservation
 {
     public static class PropertyObserverExtensions
     {
+        public static PropertyObserver<TObject> ObserveProperty<TObject, TProperty>(this TObject targetObject, Expression<Func<TObject, TProperty>> property, Action<TObject, TProperty> onChanged)
+            where TObject : class, INotifyPropertyChanged
+        {
+            var observer = new PropertyObserver<TObject>() { TrackedInstances = {targetObject}};
+            observer.ObserveProperty(property, onChanged);
+            return observer;
+        }
+
 #if netstandard13
         private static readonly ConditionalWeakTable<object, object> _syncProperties = new ConditionalWeakTable<object, object>();
         public static IDisposable SyncProperty<TLeft, TRight, TProperty>(
