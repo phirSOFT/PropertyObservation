@@ -35,6 +35,8 @@ namespace PropertyObservation.Test.Mocks
 
         private void SetProperty(ref T storage, T value, [CallerMemberName] string propertyName = null)
         {
+            if(EqualityComparer<T>.Default.Equals(storage, value))
+                return; 
             storage = value;
             OnPropertyChanged(propertyName);
         }

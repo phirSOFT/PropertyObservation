@@ -69,10 +69,10 @@ namespace phirSOFT.PropertyObservation
                  Expression<Func<TRight, TProperty>> rightProperty
                 )
             {
-                if(!(leftProperty is MemberExpression lmexpression && lmexpression.Member is PropertyInfo leftPropertyInfo))
+                if(!(leftProperty.Body is MemberExpression lmexpression && lmexpression.Member is PropertyInfo leftPropertyInfo))
                     throw new ArgumentException($"{leftProperty} could not be converteted to a property of {typeof(TLeft)}.", nameof(leftProperty));
 
-                if (!(rightProperty is MemberExpression rmexpression && rmexpression.Member is PropertyInfo rightPropertyInfo))
+                if (!(rightProperty.Body is MemberExpression rmexpression && rmexpression.Member is PropertyInfo rightPropertyInfo))
                     throw new ArgumentException($"{rightProperty} could not be converteted to a property of {typeof(TLeft)}.", nameof(leftProperty));
 
                 _leftProperty = leftPropertyInfo;
@@ -103,7 +103,7 @@ namespace phirSOFT.PropertyObservation
             internal void SyncRight(TRight sender, TProperty value)
             {
                 if (_left.TryGetTarget(out var left))
-                    _rightProperty.SetValue(left, value);
+                    _leftProperty.SetValue(left, value);
             }
         }
 #endif
