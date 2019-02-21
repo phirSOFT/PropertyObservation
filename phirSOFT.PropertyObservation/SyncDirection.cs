@@ -9,6 +9,6 @@ namespace phirSOFT.PropertyObservation
     {
         LeftToRight = 1,
         RightToLeft = 2,
-        Both = LeftToRight | RightToLeft;
+        Both = LeftToRight | RightToLeft
     }
 }
