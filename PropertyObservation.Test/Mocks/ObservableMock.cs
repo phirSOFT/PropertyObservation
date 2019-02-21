@@ -15,23 +15,23 @@ namespace PropertyObservation.Test.Mocks
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public T Property { get => property; set => SetProperty(ref property, value) }
+        public T Property { get => property; set => SetProperty(ref property, value); }
 
-        public T ReadOnlyProperty { get => readOnlyProperty; private set => SetProperty(ref readOnlyProperty, value) }
+        public T ReadOnlyProperty { get => readOnlyProperty; private set => SetProperty(ref readOnlyProperty, value) ;}
 
         public void SetReadOnlyValue(T value)
         {
             readOnlyProperty = value;
         }
 
-        public T WriteOnlyProperty { private get => writeOnlyProperty; set => SetProperty(ref writeOnlyProperty, value) }
+        public T WriteOnlyProperty { private get => writeOnlyProperty; set => SetProperty(ref writeOnlyProperty, value); }
 
         public T GetWriteOnlyProperty()
         {
             return WriteOnlyProperty;
         }
 
-        public T OtherProperty { get => otherProperty; set => SetProperty(ref otherProperty, value) }
+        public T OtherProperty { get => otherProperty; set => SetProperty(ref otherProperty, value); }
 
         private void SetProperty(ref T storage, T value, [CallerMemberName] string propertyName = null)
         {

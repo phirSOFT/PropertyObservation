@@ -50,7 +50,7 @@ namespace phirSOFT.PropertyObservation
 
         private static PropertyObserver<T> GetPropertyObserver<T>(this T instance) where T : class, INotifyPropertyChanged
         {
-            return (PropertyObserver<T>)_syncProperties.GetValue(instance, instance => new PropertyObserver<T> { TrackedInstances = { (T)instance } });
+            return (PropertyObserver<T>)_syncProperties.GetValue(instance, instanceObject => new PropertyObserver<T> { TrackedInstances = { (T)instanceObject } });
         }
 
         private class PropertySyncHandle<TLeft, TRight, TProperty> : IDisposable
